@@ -1,26 +1,24 @@
 package com.nutrivida.servicios.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 @Table(name = "servicio")
 public class Servicio {
-
-    private enum Modalidad{
-        PRESENCIAL, PRESENCIAL_GRUPO, ONLINE_VIDEO
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 5)
+    @Column(nullable = false, length = 5, unique = true)
     private String codigo;
 
     @Column(nullable = false, length = 80)
@@ -30,10 +28,11 @@ public class Servicio {
     private String duracion;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(nullable = false, length = 20)
     private Modalidad modalidad;
 
-    @Column(nullable = false, precision = 6)
+    @Column(nullable = false)
     private int precio;
 
     @Column(nullable = false)
@@ -45,5 +44,4 @@ public class Servicio {
     @ManyToOne
     @JoinColumn(name = "id_categoria")
     private Categoria categoria;
-
 }
