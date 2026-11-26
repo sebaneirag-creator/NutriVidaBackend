@@ -31,3 +31,11 @@ Usan la base `nutrivida_test` (distinta de la de desarrollo). Cada prueba se rev
 | Cambio de contraseña con la actual incorrecta | 400 |
 | Cuenta desactivada | 401 con clave errónea; 423 con la correcta |
 
+## Manuales (frontend + backend + base de datos)
+| # | Caso | Pasos | Esperado | Obtenido | ✔/✘ | Fecha |
+|---|------|-------|----------|----------|-----|-------|
+| 1 | Persistencia | Cambiar stock, reiniciar backend | El stock se mantiene | El stock se mantiene | ✔| 26/11|
+| 2 | Sesión | Iniciar sesión y recargar la página | Sigue autenticado | Sigue autenticado| ✔| 26/11|
+| 3 | Expiración | Borrar el token y navegar | Redirige a login | Redirige a login| ✔| 26/11|
+| 4 | Historial | Comprar y abrir "Mis pedidos" | Aparece el pedido nuevo | Aparece el pedido| ✔| 26/11|
+| 5 | Privacidad | Cliente A pide el pedido de B por URL | 404 | Error 404| ✔| 26/11|
