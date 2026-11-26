@@ -4,8 +4,6 @@ API REST de la clínica de nutrición **NutriVida**: catálogo de servicios nutr
 
 Proyecto semestral. Este repositorio contiene solo el **backend**; el frontend (React + TypeScript + Vite) está en su propio repositorio.
 
-## Tecnologías
-
 ## Requisitos
 
 - Java 21
