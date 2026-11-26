@@ -2,6 +2,7 @@ package com.nutrivida.servicios.controller;
 
 import com.nutrivida.servicios.dto.ServicioRequest;
 import com.nutrivida.servicios.dto.ServicioResponse;
+import com.nutrivida.servicios.dto.StockRequest;
 import com.nutrivida.servicios.service.ServicioService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,6 +40,11 @@ public class ServicioController {
         URI ubicacion = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}").buildAndExpand(creado.id()).toUri();
         return ResponseEntity.created(ubicacion).body(creado);
+    }
+
+    @PatchMapping("/{id}/stock")
+    public ServicioResponse actualizarStock(@PathVariable Long id, @Valid @RequestBody StockRequest req) {
+        return servicioService.actualizarStock(id, req.stock());
     }
 
     @PutMapping("/{id}")

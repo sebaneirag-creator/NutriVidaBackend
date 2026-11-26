@@ -1,14 +1,12 @@
 package com.nutrivida.servicios.controller;
 
-import com.nutrivida.servicios.dto.ActivoRequest;
-import com.nutrivida.servicios.dto.PerfilRequest;
-import com.nutrivida.servicios.dto.UsuarioRequest;
-import com.nutrivida.servicios.dto.UsuarioResponse;
+import com.nutrivida.servicios.dto.*;
 import com.nutrivida.servicios.security.UsuarioAutenticado;
 import com.nutrivida.servicios.service.UsuarioService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -82,5 +80,10 @@ public class UsuarioController {
                                          @AuthenticationPrincipal UsuarioAutenticado actual) {
         usuarioService.eliminar(id, actual.id());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/clientes")
+    public ResponseEntity<UsuarioResponse> crearCliente(@Valid @RequestBody RegistroRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.crearCliente(req));
     }
 }

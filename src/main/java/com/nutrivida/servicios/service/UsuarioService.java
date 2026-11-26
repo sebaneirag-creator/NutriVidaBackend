@@ -1,6 +1,7 @@
 package com.nutrivida.servicios.service;
 
 import com.nutrivida.servicios.dto.PerfilRequest;
+import com.nutrivida.servicios.dto.RegistroRequest;
 import com.nutrivida.servicios.dto.UsuarioRequest;
 import com.nutrivida.servicios.dto.UsuarioResponse;
 import com.nutrivida.servicios.exception.ConflictoException;
@@ -57,6 +58,12 @@ public class UsuarioService {
         usuario.setContrasena(passwordEncoder.encode(req.contrasena()));
         usuario.setRol(buscarRol(req.rol()));
         return UsuarioResponse.desde(usuarioRepository.save(usuario));
+    }
+
+    @Transactional
+    public UsuarioResponse crearCliente(RegistroRequest req) {
+        return crear(new UsuarioRequest(req.nombre(), req.apellido(), req.correo(), req.contrasena(),
+                req.fechaNacimiento(), req.genero(), req.region(), req.direccion(), "CLIENTE"));
     }
 
     @Transactional
@@ -128,9 +135,14 @@ public class UsuarioService {
         if (usuarioRepository.existsByCorreoAndIdNot(correo, idActual)) {
             throw new ConflictoException("Ya existe otro usuario con ese correo");
         }
+        boolean cambiaClave = req.contrasena() != null && !req.contrasena().isBlank();
+        if (cambiaClave && (req.contrasenaActual() == null
+                || !passwordEncoder.matches(req.contrasenaActual(), usuario.getContrasena()))) {
+            throw new ReglaNegocioException("La contraseña actual es incorrecta");
+        }
         copiarDatos(usuario, req.nombre(), req.apellido(), correo, req.fechaNacimiento(),
                 req.genero(), req.region(), req.direccion());
-        if (req.contrasena() != null && !req.contrasena().isBlank()) {
+        if (cambiaClave) {
             usuario.setContrasena(passwordEncoder.encode(req.contrasena()));
         }
         return UsuarioResponse.desde(usuarioRepository.save(usuario));
@@ -151,6 +163,7 @@ public class UsuarioService {
 
     private void copiarDatos(Usuario u, String nombre, String apellido, String correo,
                              java.time.LocalDate fechaNacimiento, String genero, String region, String direccion) {
+        ReglasUsuario.exigirEdadMinima(fechaNacimiento);
         u.setNombre(nombre.trim());
         u.setApellido(apellido.trim());
         u.setCorreo(correo);

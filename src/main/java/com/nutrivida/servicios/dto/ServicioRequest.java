@@ -1,10 +1,7 @@
 package com.nutrivida.servicios.dto;
 
 import com.nutrivida.servicios.model.Modalidad;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 public record ServicioRequest(
         @NotBlank(message = "El código es obligatorio")
@@ -26,6 +23,7 @@ public record ServicioRequest(
         int precio,
 
         @Min(value = 0, message = "El stock no puede ser negativo")
+        @Max(999)
         int stock,
 
         @NotBlank(message = "La descripción es obligatoria")

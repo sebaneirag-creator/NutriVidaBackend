@@ -23,3 +23,11 @@ Usan la base `nutrivida_test` (distinta de la de desarrollo). Cada prueba se rev
 | Cancelar pedido | 200 y el stock vuelve |
 | Cambio de estado | cliente 403; admin 200; transición inválida 400 |
 | Reportes | cliente 403; admin 200 con datos; periodo inválido 400; se actualiza al crear un pedido |
+| Vendedor cambia stock | 200; borrar o crear servicios 403 |
+| Vendedor crea cliente | 201 con rol CLIENTE; `POST /usuarios` 403 |
+| Registro con correo ajeno al dominio | 400 |
+| Registro con contraseña débil | 400 |
+| Registro de menor de 14 años | 400 (con 14 años exactos, 201) |
+| Cambio de contraseña con la actual incorrecta | 400 |
+| Cuenta desactivada | 401 con clave errónea; 423 con la correcta |
+

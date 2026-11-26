@@ -42,11 +42,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         // Catálogo público de lectura
                         .requestMatchers(HttpMethod.GET, "/api/servicios/**", "/api/categorias/**").permitAll()
-                        // Escritura del catálogo
-                        .requestMatchers("/api/servicios/**").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
+                        .requestMatchers(HttpMethod.PATCH, "/api/servicios/*/stock").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
+                        .requestMatchers("/api/servicios/**").hasRole("ADMINISTRADOR")
                         .requestMatchers("/api/categorias/**").hasRole("ADMINISTRADOR")
                         // Usuarios: el perfil propio para cualquier autenticado; el resto solo admin
                         .requestMatchers("/api/usuarios/me").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/usuarios/clientes").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
                         .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
                         // Pedidos: el cliente opera sobre los suyos (el servicio valida la propiedad)
                         .requestMatchers(HttpMethod.POST, "/api/pedidos").authenticated()

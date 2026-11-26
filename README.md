@@ -58,10 +58,10 @@ Para probar endpoints protegidos: hacer `POST /api/auth/login`, copiar el `acces
 
 | Rol | Correo | Contraseña |
 |---|---|---|
-| Administrador | `admin@nutrivida.cl` | `Admin123` |
-| Vendedor | `vendedor@nutrivida.cl` | `Vendedor123` |
-| Cliente | `cliente@nutrivida.cl` | `Cliente123` |
-| Cliente | `maria@nutrivida.cl` | `Cliente456` |
+| Administrador | `admin@duocuc.cl` | `Admin123` |
+| Vendedor | `vendedor@duocuc.cl` | `Vendedor123` |
+| Cliente | `cliente@duocuc.cl` | `Cliente123` |
+| Cliente | `maria@duocuc.cl` | `Cliente456` |
 
 Los datos de prueba incluyen 4 categorías, 18 servicios y 14 pedidos repartidos en el último año, para que el historial y el dashboard tengan información desde el primer arranque.
 
@@ -71,7 +71,7 @@ Los datos de prueba incluyen 4 categorías, 18 servicios y 14 pedidos repartidos
 |---|---|
 | **Visitante** (sin sesión) | Ver el catálogo (servicios y categorías), registrarse e iniciar sesión |
 | **CLIENTE** | Todo lo anterior, más: crear pedidos, ver y cancelar **sus propios** pedidos, ver y editar su perfil |
-| **VENDEDOR** | Todo lo del cliente, más: gestionar servicios, ver todos los pedidos, cambiar su estado y consultar reportes |
+| **VENDEDOR** | Todo lo del cliente, más: consultar servicios y modificar su stock, crear clientes, ver todos los pedidos, cambiar su estado y consultar reportes |
 | **ADMINISTRADOR** | Todo lo anterior, más: gestionar categorías y usuarios (crear, editar, activar, desactivar, desbloquear, eliminar) |
 
 Los permisos se validan **en el backend**, no solo en el frontend: una solicitud sin token válido recibe `401` y una con rol insuficiente recibe `403`.
@@ -93,9 +93,9 @@ Los permisos se validan **en el backend**, no solo en el frontend: una solicitud
 |---|---|---|
 | GET | `/api/servicios` (filtros `?categoria=` y `?q=`) | Público |
 | GET | `/api/servicios/{id}` | Público |
-| POST | `/api/servicios` | Administrador, vendedor |
-| PUT | `/api/servicios/{id}` | Administrador, vendedor |
-| DELETE | `/api/servicios/{id}` | Administrador, vendedor |
+| PATCH | `/api/servicios/{id}/stock` | Administrador, vendedor |
+| POST, PUT, DELETE | `/api/servicios` y `/api/servicios/{id}` | Administrador |
+| POST | `/api/usuarios/clientes` | Administrador, vendedor (siempre crea un CLIENTE) |
 
 ### Categorías
 
@@ -146,6 +146,8 @@ Los permisos se validan **en el backend**, no solo en el frontend: una solicitud
 - **Privacidad del historial:** un cliente que consulta el pedido de otro usuario recibe `404`.
 - **Integridad:** no se puede eliminar un servicio que ya forma parte de pedidos, una categoría con servicios, ni un usuario con pedidos (en ese caso se desactiva).
 - **Reportes:** los pedidos cancelados no cuentan como venta. Los períodos son móviles: últimos 7, 30 o 365 días.
+- **Registro y perfil:** correo `@duocuc.cl`, contraseña con 8 caracteres, mayúscula, minúscula y número, edad mínima de 14 años y todos los datos personales obligatorios.
+- **Cambio de contraseña:** desde el perfil exige la contraseña actual.
 
 ## Formato de errores
 

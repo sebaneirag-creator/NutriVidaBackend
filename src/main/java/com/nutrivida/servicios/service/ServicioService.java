@@ -63,6 +63,14 @@ public class ServicioService {
     }
 
     @Transactional
+    public ServicioResponse actualizarStock(Long id, int stock) {
+        Servicio s = servicioRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new RecursoNoEncontradoException("Servicio no encontrado (id " + id + ")"));
+        s.setStock(stock);
+        return toResponse(servicioRepository.save(s));
+    }
+
+    @Transactional
     public void eliminar(Long id) {
         Servicio servicio = buscar(id);
         if (detallePedidoRepository.existsByServicioId(id)) {

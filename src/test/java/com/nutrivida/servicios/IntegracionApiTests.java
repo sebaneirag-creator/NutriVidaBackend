@@ -21,6 +21,7 @@ import org.springframework.web.context.WebApplicationContext;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -85,9 +86,9 @@ class IntegracionApiTests {
         return extraer(cuerpo(r), "\"accessToken\":\"([^\"]+)\"");
     }
 
-    private String admin() throws Exception { return login("admin@nutrivida.cl", "Admin123"); }
-    private String cliente() throws Exception { return login("cliente@nutrivida.cl", "Cliente123"); }
-    private String maria() throws Exception { return login("maria@nutrivida.cl", "Cliente456"); }
+    private String admin() throws Exception { return login("admin@duocuc.cl", "Admin123"); }
+    private String cliente() throws Exception { return login("cliente@duocuc.cl", "Cliente123"); }
+    private String maria() throws Exception { return login("maria@duocuc.cl", "Cliente456"); }
 
     /** Crea un servicio de prueba como admin y devuelve su id. */
     private String crearServicio(String tokenAdmin, int stock) throws Exception {
@@ -103,11 +104,19 @@ class IntegracionApiTests {
         return "{\"items\":[{\"idServicio\":" + idServicio + ",\"cantidad\":" + cantidad + "}]}";
     }
 
+    private String vendedor() throws Exception { return login("vendedor@duocuc.cl", "Vendedor123"); }
+
+    private String registroJson(String correo, String clave, String fechaNacimiento) {
+        return "{\"nombre\":\"Nuevo\",\"apellido\":\"Usuario\",\"correo\":\"" + correo + "\","
+                + "\"contrasena\":\"" + clave + "\",\"fechaNacimiento\":\"" + fechaNacimiento + "\","
+                + "\"genero\":\"Otro\",\"region\":\"Metropolitana\",\"direccion\":\"Calle 123\"}";
+    }
+
     // ---------- autenticacion ----------
 
     @Test
     void loginCorrectoDevuelveTokens() throws Exception {
-        String json = "{\"correo\":\"admin@nutrivida.cl\",\"contrasena\":\"Admin123\"}";
+        String json = "{\"correo\":\"admin@duocuc.cl\",\"contrasena\":\"Admin123\"}";
         String cuerpo = cuerpo(llamar(post("/api/auth/login"), null, json).andExpect(status().isOk()));
         assertTrue(cuerpo.contains("accessToken") && cuerpo.contains("refreshToken"));
         assertFalse(cuerpo.contains("contrasena"), "La respuesta no debe incluir la contraseña");
@@ -115,23 +124,23 @@ class IntegracionApiTests {
 
     @Test
     void loginIncorrectoDa401() throws Exception {
-        String json = "{\"correo\":\"admin@nutrivida.cl\",\"contrasena\":\"mala\"}";
+        String json = "{\"correo\":\"admin@duocuc.cl\",\"contrasena\":\"mala\"}";
         llamar(post("/api/auth/login"), null, json).andExpect(status().isUnauthorized());
     }
 
     @Test
     void tresIntentosFallidosBloqueanLaCuenta() throws Exception {
-        String mala = "{\"correo\":\"maria@nutrivida.cl\",\"contrasena\":\"mala\"}";
+        String mala = "{\"correo\":\"maria@duocuc.cl\",\"contrasena\":\"mala\"}";
         llamar(post("/api/auth/login"), null, mala).andExpect(status().isUnauthorized());
         llamar(post("/api/auth/login"), null, mala).andExpect(status().isUnauthorized());
         llamar(post("/api/auth/login"), null, mala).andExpect(status().isLocked());
-        String buena = "{\"correo\":\"maria@nutrivida.cl\",\"contrasena\":\"Cliente456\"}";
+        String buena = "{\"correo\":\"maria@duocuc.cl\",\"contrasena\":\"Cliente456\"}";
         llamar(post("/api/auth/login"), null, buena).andExpect(status().isLocked());
     }
 
     @Test
     void refreshRotaElTokenYElAnteriorYaNoSirve() throws Exception {
-        String json = "{\"correo\":\"cliente@nutrivida.cl\",\"contrasena\":\"Cliente123\"}";
+        String json = "{\"correo\":\"cliente@duocuc.cl\",\"contrasena\":\"Cliente123\"}";
         String refresh = extraer(cuerpo(llamar(post("/api/auth/login"), null, json)), "\"refreshToken\":\"([^\"]+)\"");
         String cuerpoRefresh = "{\"refreshToken\":\"" + refresh + "\"}";
         llamar(post("/api/auth/refresh"), null, cuerpoRefresh).andExpect(status().isOk());
@@ -140,7 +149,7 @@ class IntegracionApiTests {
 
     @Test
     void logoutRevocaElRefreshToken() throws Exception {
-        String json = "{\"correo\":\"cliente@nutrivida.cl\",\"contrasena\":\"Cliente123\"}";
+        String json = "{\"correo\":\"cliente@duocuc.cl\",\"contrasena\":\"Cliente123\"}";
         String refresh = extraer(cuerpo(llamar(post("/api/auth/login"), null, json)), "\"refreshToken\":\"([^\"]+)\"");
         String cuerpoRefresh = "{\"refreshToken\":\"" + refresh + "\"}";
         llamar(post("/api/auth/logout"), null, cuerpoRefresh).andExpect(status().isNoContent());
@@ -149,8 +158,8 @@ class IntegracionApiTests {
 
     @Test
     void registroPublicoSiempreCreaCliente() throws Exception {
-        String json = "{\"nombre\":\"Nuevo\",\"apellido\":\"Usuario\",\"correo\":\"nuevo@nutrivida.cl\","
-                + "\"contrasena\":\"Clave12345\",\"rol\":\"ADMINISTRADOR\"}";
+        String json = "{\"nombre\":\"Nuevo\",\"apellido\":\"Usuario\",\"correo\":\"nuevo@duocuc.cl\","
+                + "\"fechaNacimiento\":\"2000-01-01\",\"genero\":\"Otro\",\"region\":\"Metropolitana\",\"direccion\":\"Calle 123\",\"contrasena\":\"Clave12345\",\"rol\":\"ADMINISTRADOR\"}";
         String cuerpo = cuerpo(llamar(post("/api/auth/registro"), null, json).andExpect(status().isCreated()));
         assertTrue(cuerpo.contains("\"rol\":\"CLIENTE\""), "El registro debe crear un CLIENTE: " + cuerpo);
     }
@@ -195,7 +204,7 @@ class IntegracionApiTests {
     @Test
     void perfilPropioEsAccesibleParaCualquierUsuario() throws Exception {
         String cuerpo = cuerpo(llamar(get("/api/usuarios/me"), cliente(), null).andExpect(status().isOk()));
-        assertTrue(cuerpo.contains("cliente@nutrivida.cl"));
+        assertTrue(cuerpo.contains("cliente@duocuc.cl"));
     }
 
     @Test
@@ -330,5 +339,96 @@ class IntegracionApiTests {
         long despues = Long.parseLong(extraer(
                 cuerpo(llamar(get("/api/reportes/resumen?periodo=semana"), token, null)), "\"totalPedidos\":(\\d+)"));
         assertEquals(antes + 1, despues);
+    }
+
+    // ---------- vendedor ----------
+
+    @Test
+    void vendedorSoloPuedeCambiarElStock() throws Exception {
+        String id = crearServicio(admin(), 5);
+        String vendedor = vendedor();
+
+        String cuerpo = cuerpo(llamar(patch("/api/servicios/" + id + "/stock"), vendedor, "{\"stock\":9}")
+                .andExpect(status().isOk()));
+        assertTrue(cuerpo.contains("\"stock\":9"), cuerpo);
+
+        llamar(patch("/api/servicios/" + id + "/stock"), vendedor, "{\"stock\":-1}").andExpect(status().isBadRequest());
+        llamar(delete("/api/servicios/" + id), vendedor, null).andExpect(status().isForbidden());
+        llamar(post("/api/servicios"), vendedor, "{}").andExpect(status().isForbidden());
+        llamar(patch("/api/servicios/" + id + "/stock"), cliente(), "{\"stock\":9}").andExpect(status().isForbidden());
+    }
+
+    @Test
+    void vendedorCreaClientesPeroNoOtrosRolesNiListaUsuarios() throws Exception {
+        String vendedor = vendedor();
+        String json = registroJson("cliente.nuevo@duocuc.cl", "Clave12345", "2000-01-01");
+
+        String cuerpo = cuerpo(llamar(post("/api/usuarios/clientes"), vendedor, json).andExpect(status().isCreated()));
+        assertTrue(cuerpo.contains("\"rol\":\"CLIENTE\""), cuerpo);
+
+        llamar(post("/api/usuarios"), vendedor, "{}").andExpect(status().isForbidden());
+        llamar(get("/api/usuarios"), vendedor, null).andExpect(status().isForbidden());
+        llamar(post("/api/usuarios/clientes"), cliente(), json).andExpect(status().isForbidden());
+    }
+
+// ---------- validaciones de registro ----------
+
+    @Test
+    void registroRechazaCorreoFueraDelDominio() throws Exception {
+        llamar(post("/api/auth/registro"), null, registroJson("alguien@gmail.com", "Clave12345", "2000-01-01"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void registroRechazaContrasenaDebil() throws Exception {
+        llamar(post("/api/auth/registro"), null, registroJson("debil1@duocuc.cl", "abcdefgh", "2000-01-01"))
+                .andExpect(status().isBadRequest());
+        llamar(post("/api/auth/registro"), null, registroJson("debil2@duocuc.cl", "Ab1", "2000-01-01"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void registroRechazaMenoresDe14YAceptaDe14() throws Exception {
+        String menor = LocalDate.now().minusYears(10).toString();
+        llamar(post("/api/auth/registro"), null, registroJson("menor@duocuc.cl", "Clave12345", menor))
+                .andExpect(status().isBadRequest());
+
+        String limite = LocalDate.now().minusYears(14).toString();
+        llamar(post("/api/auth/registro"), null, registroJson("limite@duocuc.cl", "Clave12345", limite))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void registroExigeLosCamposObligatorios() throws Exception {
+        String sinGenero = "{\"nombre\":\"Nuevo\",\"apellido\":\"Usuario\",\"correo\":\"sin.genero@duocuc.cl\","
+                + "\"contrasena\":\"Clave12345\",\"fechaNacimiento\":\"2000-01-01\","
+                + "\"region\":\"Metropolitana\",\"direccion\":\"Calle 123\"}";
+        llamar(post("/api/auth/registro"), null, sinGenero).andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void cambiarLaContrasenaDelPerfilExigeLaActual() throws Exception {
+        String token = cliente();
+        String base = "{\"nombre\":\"Carlos\",\"apellido\":\"Soto\",\"correo\":\"cliente@duocuc.cl\","
+                + "\"fechaNacimiento\":\"1990-11-02\",\"genero\":\"Hombre\",\"region\":\"Metropolitana\","
+                + "\"direccion\":\"Irarrazaval 789\",\"contrasena\":\"NuevaClave123\"";
+
+        llamar(put("/api/usuarios/me"), token, base + ",\"contrasenaActual\":\"incorrecta\"}")
+                .andExpect(status().isBadRequest());
+        llamar(put("/api/usuarios/me"), token, base + ",\"contrasenaActual\":\"Cliente123\"}")
+                .andExpect(status().isOk());
+        login("cliente@duocuc.cl", "NuevaClave123");
+    }
+
+    @Test
+    void cuentaDesactivadaSoloSeRevelaConLaContrasenaCorrecta() throws Exception {
+        String id = extraer(cuerpo(llamar(get("/api/usuarios/me"), cliente(), null).andExpect(status().isOk())),
+                "\"id\":(\\d+)");
+        llamar(patch("/api/usuarios/" + id + "/activo"), admin(), "{\"activo\":false}").andExpect(status().isOk());
+
+        String clave = "{\"correo\":\"cliente@duocuc.cl\",\"contrasena\":\"Cliente123\"}";
+        String mala = "{\"correo\":\"cliente@duocuc.cl\",\"contrasena\":\"incorrecta\"}";
+        llamar(post("/api/auth/login"), null, mala).andExpect(status().isUnauthorized());
+        llamar(post("/api/auth/login"), null, clave).andExpect(status().isLocked());
     }
 }

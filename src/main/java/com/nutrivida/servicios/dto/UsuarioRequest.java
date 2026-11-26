@@ -1,9 +1,6 @@
 package com.nutrivida.servicios.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDate;
 
@@ -20,21 +17,26 @@ public record UsuarioRequest(
         @NotBlank(message = "El correo es obligatorio")
         @Email(message = "El correo no tiene un formato válido")
         @Size(max = 100, message = "El correo no puede superar los 100 caracteres")
+        @Pattern(regexp = "(?i)^[^@\\s]+@duocuc\\.cl$", message = "El correo debe ser del dominio @duocuc.cl")
         String correo,
 
-        @Size(min = 8, max = 60, message = "La contraseña debe tener entre 8 y 60 caracteres")
+        @Pattern(regexp = "^(|(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,60})$", message = "...")
         String contrasena,
 
         @Past(message = "La fecha de nacimiento debe ser anterior a hoy")
+        @NotNull
         LocalDate fechaNacimiento,
 
         @Size(max = 20, message = "El género no puede superar los 20 caracteres")
+        @NotBlank
         String genero,
 
         @Size(max = 60, message = "La región no puede superar los 60 caracteres")
+        @NotBlank
         String region,
 
         @Size(max = 150, message = "La dirección no puede superar los 150 caracteres")
+        @NotBlank
         String direccion,
 
         @NotBlank(message = "El rol es obligatorio (ADMINISTRADOR, VENDEDOR o CLIENTE)")

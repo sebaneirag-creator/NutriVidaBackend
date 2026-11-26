@@ -54,10 +54,6 @@ public class AuthService {
         Usuario usuario = usuarioRepository.findByCorreo(normalizar(req.correo()))
                 .orElseThrow(() -> new CredencialesInvalidasException(MSG_CREDENCIALES));
 
-        if (!usuario.isActivo()) {
-            throw new CuentaBloqueadaException("La cuenta está desactivada. Contacta al administrador");
-        }
-
         LocalDateTime ahora = LocalDateTime.now();
         if (usuario.getBloqueadoHasta() != null) {
             if (usuario.getBloqueadoHasta().isAfter(ahora)) {
@@ -84,6 +80,11 @@ public class AuthService {
                     MSG_CREDENCIALES + ". Intentos restantes: " + (MAX_INTENTOS - intentos));
         }
 
+        // Solo quien conoce la contraseña se entera de que la cuenta está desactivada
+        if (!usuario.isActivo()) {
+            throw new CuentaBloqueadaException("La cuenta está desactivada. Contacta al administrador");
+        }
+
         usuario.setIntentosFallidos(0);
         usuario.setBloqueadoHasta(null);
         usuarioRepository.save(usuario);
@@ -96,6 +97,7 @@ public class AuthService {
         if (usuarioRepository.existsByCorreo(correo)) {
             throw new ConflictoException("Ya existe una cuenta con ese correo");
         }
+        ReglasUsuario.exigirEdadMinima(req.fechaNacimiento());
         Rol cliente = rolRepository.findByNombre("CLIENTE")
                 .orElseThrow(() -> new IllegalStateException("Falta el rol CLIENTE en la base de datos"));
 
