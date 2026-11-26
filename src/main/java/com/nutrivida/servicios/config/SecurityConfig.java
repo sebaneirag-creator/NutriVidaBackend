@@ -48,7 +48,14 @@ public class SecurityConfig {
                         // Usuarios: el perfil propio para cualquier autenticado; el resto solo admin
                         .requestMatchers("/api/usuarios/me").authenticated()
                         .requestMatchers("/api/usuarios/**").hasRole("ADMINISTRADOR")
-                        // Todo lo demás (pedidos, reportes...) exige sesión; los pasos 6 y 7 afinan los roles
+                        // Pedidos: el cliente opera sobre los suyos (el servicio valida la propiedad)
+                        .requestMatchers(HttpMethod.POST, "/api/pedidos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos/mis-pedidos").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/pedidos/*").authenticated()
+                        .requestMatchers(HttpMethod.PATCH, "/api/pedidos/*/cancelar").authenticated()
+                        // El resto de pedidos (listado general y cambio de estado) y los reportes: personal
+                        .requestMatchers("/api/pedidos/**").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
+                        .requestMatchers("/api/reportes/**").hasAnyRole("ADMINISTRADOR", "VENDEDOR")
                         .anyRequest().authenticated())
                 .exceptionHandling(e -> e
                         .authenticationEntryPoint(restAuthHandlers)
